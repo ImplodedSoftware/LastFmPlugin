@@ -108,7 +108,7 @@ namespace LastFmPlugin
             return res;
         }
 
-        public async Task GetArtistPicture(PluginArtist artist, CancellationToken ct, IPluginCallback updateCallback, Action<int, string> updateAction)
+        public async Task GetArtistPicture(PluginArtist artist, CancellationToken ct, Action<int, string, PluginImage> updateAction)
         {
             var artistData = await GetArtistData(artist, ct);
             var res = new PluginImage();
@@ -124,13 +124,10 @@ namespace LastFmPlugin
                 }
                 res.FoundByPlugin = Name;
             }
-            if (updateAction != null)
-                updateAction(artist.Id, res.Filename);
-            else
-                updateCallback.PictureUpdateNotification(res);
+            updateAction(artist.Id, res.Filename, res);
         }
 
-        public async Task GetAlbumPicture(PluginAlbum album, CancellationToken ct, IPluginCallback updateCallback, Action<int, string> updateAction)
+        public async Task GetAlbumPicture(PluginAlbum album, CancellationToken ct, Action<int, string, PluginImage> updateAction)
         {
             var url = string.Format(LastFmConstants.URL_GET_ALBUM_INFO_BY_NAME, HttpUtility.UrlEncode(album.AlbumName));
             var client = new HttpClient();
@@ -196,14 +193,7 @@ namespace LastFmPlugin
                 res.Id = album.Id;
                 res.FoundByPlugin = Name;
             }
-            if (updateAction == null)
-            {
-                updateCallback.PictureUpdateNotification(res);
-            }
-            else
-            {
-                updateAction(album.Id, imageName);
-            }
+            updateAction(album.Id, imageName, res);
         }
     }
 }
