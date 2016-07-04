@@ -6,7 +6,6 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
-using ImPluginEngine.Interfaces;
 using LastFmPlugin.Helpers;
 using System.Net.Http;
 using System.Threading;
@@ -108,7 +107,7 @@ namespace LastFmPlugin
             return res;
         }
 
-        public async Task GetArtistPicture(PluginArtist artist, CancellationToken ct, Action<int, string, PluginImage> updateAction)
+        public async Task GetArtistPicture(PluginArtist artist, CancellationToken ct, Action<PluginImage> updateAction)
         {
             var artistData = await GetArtistData(artist, ct);
             var res = new PluginImage();
@@ -122,12 +121,13 @@ namespace LastFmPlugin
                     res.Width = bitmapFrame.PixelWidth;
                     res.Height = bitmapFrame.PixelHeight;
                 }
+                res.Id = artist.Id;
                 res.FoundByPlugin = Name;
             }
-            updateAction(artist.Id, res.Filename, res);
+            updateAction(res);
         }
 
-        public async Task GetAlbumPicture(PluginAlbum album, CancellationToken ct, Action<int, string, PluginImage> updateAction)
+        public async Task GetAlbumPicture(PluginAlbum album, CancellationToken ct, Action<PluginImage> updateAction)
         {
             var url = string.Format(LastFmConstants.URL_GET_ALBUM_INFO_BY_NAME, HttpUtility.UrlEncode(album.AlbumName));
             var client = new HttpClient();
@@ -193,7 +193,7 @@ namespace LastFmPlugin
                 res.Id = album.Id;
                 res.FoundByPlugin = Name;
             }
-            updateAction(album.Id, imageName, res);
+            updateAction(res);
         }
     }
 }
