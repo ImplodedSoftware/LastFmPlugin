@@ -9,27 +9,70 @@ using System.Web;
 using LastFmPlugin.Helpers;
 using System.Net.Http;
 using System.Threading;
+using System.Windows.Forms;
 using System.Windows.Media.Imaging;
 using ImPluginEngine.Abstractions.Interfaces;
 using ImPluginEngine.Types;
 using Newtonsoft.Json.Linq;
 using ImPluginEngine.Helpers;
 using LastFmPlugin.Types;
+using Newtonsoft.Json;
 
 namespace LastFmPlugin
 {
-    public class LastFmPlugin : IPlugin, IArtistPlugin, IArtistPicture, IAlbumPicture
+    public class LastFmPlugin : IPlugin, IArtistPlugin, IArtistPicture, IAlbumPicture, IPluginConfig
     {
         public string Name => "Last.fm";
 
         public string Version => "1.0";
 
+        private string GetLanguageArg(int languageIndex)
+        {
+            switch (languageIndex)
+            {
+                case 0:
+                    return string.Empty;
+                case 1:
+                    return "&lang=de";
+                case 2:
+                    return "&lang=es";
+                case 3:
+                    return "&lang=fr";
+                case 4:
+                    return "&lang=it";
+                case 5:
+                    return "&lang=jp";
+                case 6:
+                    return "&lang=pl";
+                case 7:
+                    return "&lang=pt";
+                case 8:
+                    return "&lang=ru";
+                case 9:
+                    return "&lang=zh";
+                default:
+                    return string.Empty;
+            }
+        }
+
+        private string GetLanguageFromSettings()
+        {
+            var settingsFile = Path.Combine(PluginConstants.SettingsPath, "lastfm.json");
+            if (File.Exists(settingsFile))
+            {
+                var json = File.ReadAllText(settingsFile);
+                var sf = JsonConvert.DeserializeObject<LastFmSettings>(json);
+                return GetLanguageArg(sf.LanguageIndex);
+            }
+            return GetLanguageArg(0);
+        }
 
         public async Task<PluginArtist> GetArtistData(PluginArtist artist, CancellationToken ct)
         {
-            var url = string.Format(LastFmConstants.URL_GET_ARTIST_INFO_BY_NAME, HttpUtility.UrlEncode(artist.Name));
+            var languageArg = GetLanguageFromSettings();
+            var url = string.Format(LastFmConstants.URL_GET_ARTIST_INFO_BY_NAME, HttpUtility.UrlEncode(artist.Name), languageArg);
             if (!string.IsNullOrEmpty(artist.MusicBrainzId))
-                url = string.Format(LastFmConstants.URL_GET_ARTIST_INFO_BY_MBID, artist.MusicBrainzId);
+                url = string.Format(LastFmConstants.URL_GET_ARTIST_INFO_BY_MBID, artist.MusicBrainzId, languageArg);
             var client = new HttpClient();
             string json;
             try
@@ -194,6 +237,14 @@ namespace LastFmPlugin
                 res.FoundByPlugin = Name;
             }
             updateAction(res);
+        }
+
+        public void ConfigurePlugin()
+        {
+            var dlg = new ConfigForm();
+            var res = dlg.ShowDialog();
+            if (res == DialogResult.OK)
+                dlg.SaveSettings();
         }
     }
 }
