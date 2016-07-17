@@ -9,4 +9,4 @@ To be able to run this plug-in you will need to have Helium 12 (Neon) installed 
 Neon can be downloaded from: https://implodedsoftware.wordpress.com/
 
 When you open the solution for the first time, be sure to restore NuGet packages.
-After that you need to fill in your Amazon (AWS) key and secret in the LastFmConstants.cs class.
+After that you need to fill in your LastFm key and secret in the LastFmConstants.cs class.
